@@ -42,4 +42,4 @@ struct MemPackItem
 	static unsigned normalizeBlocks(quint32 blocks, unsigned packSize);
 };
 
-typedef QVector<MemPackItem> MemPackItems;
+typedef QList<MemPackItem> MemPackItems;

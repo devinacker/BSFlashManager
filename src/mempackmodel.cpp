@@ -11,7 +11,7 @@ MemPackModel::MemPackModel(QObject *parent)
 }
 
 // ----------------------------------------------------------------------------
-int MemPackModel::rowCount(const QModelIndex& index) const
+int MemPackModel::rowCount(const QModelIndex&) const
 {
 	return myItems.size();
 }
@@ -54,7 +54,7 @@ bool MemPackModel::removeRows(int row, int count, const QModelIndex &parent)
 	{
 		if (row >= 0 && row < myItems.count())
 		{
-			myItems.remove(row);
+			myItems.removeAt(row);
 		}
 	}
 	endRemoveRows();
@@ -111,7 +111,7 @@ void MemPackModel::setItems(const MemPackItems& newItems)
 // ----------------------------------------------------------------------------
 ItemHeader MemPackModel::itemHeader(unsigned num) const
 {
-	if (num < myItems.size())
+	if (num < (unsigned)myItems.size())
 	{
 		return myItems[num].header;
 	}
@@ -122,7 +122,7 @@ ItemHeader MemPackModel::itemHeader(unsigned num) const
 // ----------------------------------------------------------------------------
 void MemPackModel::setItemHeader(unsigned num, const ItemHeader& header)
 {
-	if (num < myItems.size())
+	if (num < (unsigned)myItems.size())
 	{
 		myItems[num].header = header;
 		QModelIndex index = this->index(num, 0);
