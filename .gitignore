@@ -1,0 +1,17 @@
+debug/
+release/
+Debug/
+Release/
+GeneratedFiles/
+.vs/
+Makefile
+Makefile.Release
+Makefile.Debug
+object_script.*
+*.opendb
+*.db
+*.vcxproj.user
+*.pro.user*
+ui_*.h
+*.sfc
+*.bs
