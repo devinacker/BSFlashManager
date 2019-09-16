@@ -90,28 +90,35 @@ void MainWindow::saveFile(const QString &fileName)
 	if (tempFile.open())
 	{
 		// TODO: support multiple sizes of memory pack - currently assume 8 blocks
-		uint8 *emptyFlash = new uint8[0x100000];
-		memset(emptyFlash, 0xff, 0x100000);
+		// (saving larger ones will work, but should probably round out to a guaranteed power of two)
+		uint8 *emptyFlash = new uint8[1 << 20];
+		memset(emptyFlash, 0xff, 1 << 20);
 
-		// TODO handle errors
-		tempFile.write((const char*)emptyFlash, 0x100000);
+		bool ok = (tempFile.write((const char*)emptyFlash, 1 << 20) == (1 << 20));
 		delete[] emptyFlash;
 
 		unsigned offset = 0;
 
 		for (auto& item : memPackModel->items())
 		{
-			item.saveToFile(tempFile, offset);
+			ok &= item.saveToFile(tempFile, offset);
 			offset += item.data.size();
 		}
 
-		QFile::remove(fileName);
-		tempFile.copy(fileName);
-		
-		lastFileName = fileName;
-		updateWindowTitle();
+		if (ok)
+		{
+			QFile::remove(fileName);
+			tempFile.copy(fileName);
 
-		ui.statusBar->showMessage(tr("Saved %1.").arg(fileName));
+			lastFileName = fileName;
+			updateWindowTitle();
+
+			ui.statusBar->showMessage(tr("Saved %1.").arg(fileName));
+		}
+		else
+		{
+			QMessageBox::critical(this, tr("Save File"), tr("Unable to save %1.").arg(fileName));
+		}
 	}
 }
 
@@ -218,9 +225,19 @@ void MainWindow::updateSelected()
 
 		ui.checkFastROM->setChecked(header.mapMode & 0x10);
 		ui.checkMuteRadio->setChecked(header.execFlags & 0x10);
-		ui.checkRunPSRAM->setChecked(item.blocks <= 4);
 		ui.checkSkipIntro->setChecked(header.execFlags & 0x80);
 		ui.checkDeleted->setChecked(item.deleted);
+
+		if (item.blocks <= 4)
+		{
+			ui.checkRunPSRAM->setChecked(true);
+			ui.labelWarning->setText("");
+		}
+		else
+		{
+			ui.checkRunPSRAM->setChecked(false);
+			ui.labelWarning->setText(tr("<b>Warning:</b> Only the first file on the Memory Pack can be larger than 4 blocks."));
+		}
 	}
 	else
 	{
@@ -344,6 +361,7 @@ MemPackItems MainWindow::loadAllItems(const QString& path)
 
 		quint32 blocks = 0;
 		unsigned totalBlocks = file.size() >> 17;
+		bool recoveryWarning = false;
 
 		for (int i = 0; i < totalBlocks; i++)
 		{
@@ -356,16 +374,27 @@ MemPackItems MainWindow::loadAllItems(const QString& path)
 			if (newItem.tryLoadFrom(file, blockStart + 0x7fb0)
 				|| newItem.tryLoadFrom(file, blockStart + 0xffb0))
 			{
+				// issue some kind of warning if a file's block allocation overlaps another file
+				// (e.g. the dump of kirby guruguru ball in no-intro which has dupe files w/ wrong blocks)
+				if (blocks & newItem.header.blocks)
+				{
+					recoveryWarning = true;
+				}
+				
 				newItems.append(newItem);
 
-				// TODO: some kind of warning if a deleted file's block allocation overlaps another file
-				// (and possibly ignore the file entirely if a non-deleted file seems to have bogus block flags...
-				//  e.g. the dump of kirby guruguru ball in no-intro which has dupe files w/ wrong blocks)
 				blocks |= MemPackItem::normalizeBlocks(newItem.header.blocks, file.size());
 			}
 		}
+		// TODO: try to show placeholder entries for non-empty leftover 'junk' blocks
 
-		if (newItems.count() == 0)
+		if (recoveryWarning)
+		{
+			QMessageBox::warning(this, tr("Open File"),
+				tr("At least one file in this memory pack seems to have been partially overwritten.\n\n"
+				   "Fully recovering all files may not be possible."));
+		}
+		else if (newItems.count() == 0)
 		{
 			QMessageBox::warning(this, tr("Open File"),
 				tr("No valid BS-X files were found in this memory pack."));

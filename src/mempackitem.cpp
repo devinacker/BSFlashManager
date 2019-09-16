@@ -38,7 +38,7 @@ bool MemPackItem::tryLoadFrom(QFile& file, unsigned offset)
 			{
 				blocksLeft &= ~(1 << i);
 
-				// TODO: possibly handle npo2 file sizes here...
+				// TODO: possibly handle non-po2 file sizes here...
 				file.seek(i << 17);
 				data += file.read(1 << 17);
 			}
