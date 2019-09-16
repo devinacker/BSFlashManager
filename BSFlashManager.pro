@@ -1,0 +1,44 @@
+QT += core widgets
+
+QMAKE_CFLAGS += -std=c99
+QMAKE_CXXFLAGS += -std=c++11
+
+TARGET = BSFlashManager
+TEMPLATE = app
+CONFIG += c++11
+
+CONFIG(debug, debug|release) {
+    DESTDIR = debug
+}
+CONFIG(release, debug|release) {
+    DESTDIR = release
+}
+
+OBJECTS_DIR = obj/$$DESTDIR
+MOC_DIR = $$OBJECTS_DIR
+RCC_DIR = $$OBJECTS_DIR
+
+# OS-specific metadata and stuff
+# win32:RC_FILE = src/windows.rc
+# macx:ICON = src/images/main.icns
+
+# build on OS X with xcode/clang and libc++
+macx:QMAKE_CXXFLAGS += -stdlib=libc++
+
+RESOURCES += \
+    src/mainwindow.qrc
+
+FORMS += \
+    src/mainwindow.ui
+
+HEADERS += \
+    src/endian.h \
+    src/mainwindow.h \
+    src/mempackitem.h \
+    src/mempackmodel.h
+
+SOURCES += \
+    src/main.cpp \
+    src/mainwindow.cpp \
+    src/mempackitem.cpp \
+    src/mempackmodel.cpp
