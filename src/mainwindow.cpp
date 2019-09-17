@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui.actionAbout, SIGNAL(triggered(bool)), this, SLOT(about()));
 
 	ui.infoWidget->setEnabled(false);
+	newFile();
 }
 // ----------------------------------------------------------------------------
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -371,34 +372,41 @@ void MainWindow::addFiles()
 		memPackModel->setItems(items);
 
 		ui.statusBar->showMessage(tr("Opened %1.").arg(fileName));
+
+		updateBlockCount();
+		setWindowModified(true);
 	}
-	updateBlockCount();
-	setWindowModified(true);
 }
 
 // ----------------------------------------------------------------------------
 void MainWindow::deleteFile()
 {
 	int row = ui.listView->selectionModel()->currentIndex().row();
-	memPackModel->removeRow(row);
-	updateBlockCount();
-	setWindowModified(true);
+	if (memPackModel->removeRow(row))
+	{
+		updateBlockCount();
+		setWindowModified(true);
+	}
 }
 
 // ----------------------------------------------------------------------------
 void MainWindow::moveFileUp()
 {
 	int row = ui.listView->selectionModel()->currentIndex().row();
-	memPackModel->moveRowUp(row);
-	setWindowModified(true);
+	if (memPackModel->moveRowUp(row))
+	{
+		setWindowModified(true);
+	}
 }
 
 // ----------------------------------------------------------------------------
 void MainWindow::moveFileDown()
 {
 	int row = ui.listView->selectionModel()->currentIndex().row();
-	memPackModel->moveRowDown(row);
-	setWindowModified(true);
+	if (memPackModel->moveRowDown(row))
+	{
+		setWindowModified(true);
+	}
 }
 
 // ----------------------------------------------------------------------------

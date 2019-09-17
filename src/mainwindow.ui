@@ -103,7 +103,7 @@
       <item>
        <widget class="QLabel" name="labelBlockUsage">
         <property name="text">
-         <string>No memory pack loaded</string>
+         <string/>
         </property>
        </widget>
       </item>
