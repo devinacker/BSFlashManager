@@ -14,11 +14,14 @@ class MainWindow : public QMainWindow
 public:
 	MainWindow(QWidget *parent = Q_NULLPTR);
 
+protected:
+	void closeEvent(QCloseEvent*);
+
 private slots:
 	void newFile();
 	void openFile();
-	void saveFile();
-	void saveFileAs();
+	bool saveFile();
+	bool saveFileAs();
 
 	void exportSelected();
 	void exportAll();
@@ -32,7 +35,8 @@ private slots:
 	void moveFileDown();
 
 private:
-	void saveFile(const QString&);
+	bool promptSave();
+	bool saveFile(const QString&);
 	void updateWindowTitle();
 	void updateBlockCount();
 

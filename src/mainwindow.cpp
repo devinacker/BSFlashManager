@@ -5,6 +5,7 @@
 #include <qfiledialog.h>
 #include <qmessagebox.h>
 #include <qdebug.h>
+#include <QCloseEvent>
 
 // ----------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent)
@@ -56,19 +57,36 @@ MainWindow::MainWindow(QWidget *parent)
 
 	ui.infoWidget->setEnabled(false);
 }
+// ----------------------------------------------------------------------------
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+	if (promptSave())
+	{
+		event->accept();
+	}
+	else
+	{
+		event->ignore();
+	}
+}
 
 // ----------------------------------------------------------------------------
 void MainWindow::newFile()
 {
+	if (!promptSave()) return;
+
 	memPackModel->removeRows(0, memPackModel->rowCount());
 	lastFileName = "";
 	updateWindowTitle();
 	updateBlockCount();
+	setWindowModified(false);
 }
 
 // ----------------------------------------------------------------------------
 void MainWindow::openFile()
 {
+	if (!promptSave()) return;
+
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
 		lastFileName, tr("(*.sfc *.bs)"));
 
@@ -82,26 +100,48 @@ void MainWindow::openFile()
 		lastFileName = fileName;
 		updateWindowTitle();
 		updateBlockCount();
+		setWindowModified(false);
 	}
 }
 
 // ----------------------------------------------------------------------------
-void MainWindow::saveFile()
+bool MainWindow::promptSave()
+{
+	if (isWindowModified())
+	{
+		int result = QMessageBox::question(this, tr("Save Changes"),
+			tr("Save changes to %1?").arg(lastFileName), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+
+		if (result == QMessageBox::Cancel)
+		{
+			return false;
+		}
+		else if (result == QMessageBox::Yes)
+		{
+			return saveFile();
+		}
+	}
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------
+bool MainWindow::saveFile()
 {
 	if (lastFileName.isEmpty())
 	{
-		saveFileAs();
+		return saveFileAs();
 	}
 	else
 	{
-		saveFile(lastFileName);
+		return saveFile(lastFileName);
 	}
 }
 
 // ----------------------------------------------------------------------------
-void MainWindow::saveFile(const QString &fileName)
+bool MainWindow::saveFile(const QString &fileName)
 {
-	if (fileName.isEmpty()) return; // no file open/selected
+	if (fileName.isEmpty()) return false; // no file open/selected
 
 	QTemporaryFile tempFile;
 	if (tempFile.open())
@@ -131,20 +171,24 @@ void MainWindow::saveFile(const QString &fileName)
 			updateWindowTitle();
 
 			ui.statusBar->showMessage(tr("Saved %1.").arg(fileName));
+			setWindowModified(false);
+			return true;
 		}
 		else
 		{
 			QMessageBox::critical(this, tr("Save File"), tr("Unable to save %1.").arg(fileName));
 		}
 	}
+
+	return false;
 }
 
 // ----------------------------------------------------------------------------
-void MainWindow::saveFileAs()
+bool MainWindow::saveFileAs()
 {
 	const QString fileName = QFileDialog::getSaveFileName(this, tr("Save File As"),
 		lastFileName, tr("(*.bs)"));
-	saveFile(fileName);
+	return saveFile(fileName);
 }
 
 // ----------------------------------------------------------------------------
@@ -299,6 +343,7 @@ void MainWindow::applyChanges()
 		item.deleted = ui.checkDeleted->isChecked();
 
 		memPackModel->setItemHeader(row, header);
+		setWindowModified(true);
 	}
 }
 
@@ -318,6 +363,7 @@ void MainWindow::addFiles()
 		ui.statusBar->showMessage(tr("Opened %1.").arg(fileName));
 	}
 	updateBlockCount();
+	setWindowModified(true);
 }
 
 // ----------------------------------------------------------------------------
@@ -326,6 +372,7 @@ void MainWindow::deleteFile()
 	int row = ui.listView->selectionModel()->currentIndex().row();
 	memPackModel->removeRow(row);
 	updateBlockCount();
+	setWindowModified(true);
 }
 
 // ----------------------------------------------------------------------------
@@ -333,6 +380,7 @@ void MainWindow::moveFileUp()
 {
 	int row = ui.listView->selectionModel()->currentIndex().row();
 	memPackModel->moveRowUp(row);
+	setWindowModified(true);
 }
 
 // ----------------------------------------------------------------------------
@@ -340,12 +388,13 @@ void MainWindow::moveFileDown()
 {
 	int row = ui.listView->selectionModel()->currentIndex().row();
 	memPackModel->moveRowDown(row);
+	setWindowModified(true);
 }
 
 // ----------------------------------------------------------------------------
 void MainWindow::updateWindowTitle()
 {
-	setWindowTitle(QFileInfo(lastFileName).fileName());
+	setWindowTitle(QFileInfo(lastFileName).fileName() + "[*]");
 }
 
 // ----------------------------------------------------------------------------
