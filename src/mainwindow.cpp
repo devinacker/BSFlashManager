@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	ui.setupUi(this);
 
+	ui.actionNew->setShortcut(QKeySequence::New);
 	ui.actionOpen->setShortcut(QKeySequence::Open);
 	ui.actionSave->setShortcut(QKeySequence::Save);
 	ui.actionSaveAs->setShortcut(QKeySequence::SaveAs);
@@ -45,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui.buttonApply, SIGNAL(clicked(bool)), this, SLOT(applyChanges()));
 	connect(ui.buttonReset, SIGNAL(clicked(bool)), this, SLOT(updateSelected()));
 
+	connect(ui.actionNew, SIGNAL(triggered(bool)), this, SLOT(newFile()));
 	connect(ui.actionOpen, SIGNAL(triggered(bool)), this, SLOT(openFile()));
 	connect(ui.actionSave, SIGNAL(triggered(bool)), this, SLOT(saveFile()));
 	connect(ui.actionSaveAs, SIGNAL(triggered(bool)), this, SLOT(saveFileAs()));
@@ -53,6 +55,15 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui.actionExit, SIGNAL(triggered(bool)), this, SLOT(close()));
 
 	ui.infoWidget->setEnabled(false);
+}
+
+// ----------------------------------------------------------------------------
+void MainWindow::newFile()
+{
+	memPackModel->removeRows(0, memPackModel->rowCount());
+	lastFileName = "";
+	updateWindowTitle();
+	updateBlockCount();
 }
 
 // ----------------------------------------------------------------------------

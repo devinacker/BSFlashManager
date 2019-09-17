@@ -332,6 +332,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
@@ -384,6 +385,15 @@
    </property>
    <property name="text">
     <string>Ex&amp;port All...</string>
+   </property>
+  </action>
+  <action name="actionNew">
+   <property name="icon">
+    <iconset resource="mainwindow.qrc">
+     <normaloff>:/res/page.png</normaloff>:/res/page.png</iconset>
+   </property>
+   <property name="text">
+    <string>New</string>
    </property>
   </action>
  </widget>

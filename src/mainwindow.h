@@ -15,6 +15,7 @@ public:
 	MainWindow(QWidget *parent = Q_NULLPTR);
 
 private slots:
+	void newFile();
 	void openFile();
 	void saveFile();
 	void saveFileAs();

@@ -49,6 +49,8 @@ QVariant MemPackModel::data(const QModelIndex& index, int role) const
 // ----------------------------------------------------------------------------
 bool MemPackModel::removeRows(int row, int count, const QModelIndex &parent)
 {
+	if (count < 1) return false;
+
 	beginRemoveRows(parent, row, row + count - 1);
 	while (count--)
 	{
