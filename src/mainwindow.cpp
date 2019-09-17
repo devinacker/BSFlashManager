@@ -12,6 +12,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	ui.setupUi(this);
 
+	ui.actionOpen->setShortcut(QKeySequence::Open);
+	ui.actionSave->setShortcut(QKeySequence::Save);
+	ui.actionSaveAs->setShortcut(QKeySequence::SaveAs);
+
+	ui.actionExit->setShortcut(QKeySequence::Quit);
+	
 	memPackModel = new MemPackModel(this);
 	ui.listView->setModel(memPackModel);
 

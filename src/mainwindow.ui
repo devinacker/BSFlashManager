@@ -345,6 +345,10 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="mainwindow.qrc">
+     <normaloff>:/res/folder.png</normaloff>:/res/folder.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Open...</string>
    </property>
@@ -355,6 +359,10 @@
    </property>
   </action>
   <action name="actionSave">
+   <property name="icon">
+    <iconset resource="mainwindow.qrc">
+     <normaloff>:/res/disk.png</normaloff>:/res/disk.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Save</string>
    </property>
@@ -370,6 +378,10 @@
    </property>
   </action>
   <action name="actionExportAll">
+   <property name="icon">
+    <iconset resource="mainwindow.qrc">
+     <normaloff>:/res/disk_multiple.png</normaloff>:/res/disk_multiple.png</iconset>
+   </property>
    <property name="text">
     <string>Ex&amp;port All...</string>
    </property>

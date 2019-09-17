@@ -6,5 +6,9 @@
         <file>res/arrow_down.png</file>
         <file>res/arrow_up.png</file>
         <file>res/delete.png</file>
+        <file>res/disk.png</file>
+        <file>res/disk_multiple.png</file>
+        <file>res/folder.png</file>
+        <file>res/page.png</file>
     </qresource>
 </RCC>
