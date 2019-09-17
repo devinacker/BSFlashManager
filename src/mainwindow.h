@@ -18,6 +18,8 @@ protected:
 	void closeEvent(QCloseEvent*);
 
 private slots:
+	void about();
+
 	void newFile();
 	void openFile();
 	bool saveFile();
@@ -25,7 +27,7 @@ private slots:
 
 	void exportSelected();
 	void exportAll();
-	
+
 	void updateSelected();
 	void applyChanges();
 

@@ -55,6 +55,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui.actionExportAll, SIGNAL(triggered(bool)), this, SLOT(exportAll()));
 	connect(ui.actionExit, SIGNAL(triggered(bool)), this, SLOT(close()));
 
+	connect(ui.actionAbout, SIGNAL(triggered(bool)), this, SLOT(about()));
+
 	ui.infoWidget->setEnabled(false);
 }
 // ----------------------------------------------------------------------------
@@ -68,6 +70,14 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	{
 		event->ignore();
 	}
+}
+
+// ----------------------------------------------------------------------------
+void MainWindow::about()
+{
+	QMessageBox::information(this, tr("About"),
+		tr("%1 v%2\n\nCopyright 2019 Devin Acker (Revenant)")
+		.arg(qApp->applicationDisplayName()).arg(qApp->applicationVersion()));
 }
 
 // ----------------------------------------------------------------------------
