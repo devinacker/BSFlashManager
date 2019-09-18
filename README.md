@@ -14,3 +14,5 @@ What this utility can do:
 * Allow recovering and exporting deleted files that were able to be detected
 
 The utility can also save memory packs that are larger than the standard 8 blocks (megabits); in compatible emulators (such as bsnes-plus and bsnes/higan) the BSX software itself supports up to 32 blocks, with some limitations (a memory pack cannot contain more than one file that's larger than 4 blocks).
+
+Building requires Qt 5 and can be built with either Visual Studio or Qt Creator/qmake. Official builds currently require the Visual Studio 2015 runtime.
