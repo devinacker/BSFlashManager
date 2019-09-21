@@ -15,7 +15,7 @@ public:
 	virtual void close();
 
 	virtual quint8 readByte(quint8 bank, quint16 addr, bool *ok = nullptr) = 0;
-	virtual QByteArray readBytes(quint8 bank, quint16 addr, quint16 size, bool *ok = nullptr) = 0;
+	virtual QByteArray readBytes(quint8 bank, quint16 addr, unsigned size, bool *ok = nullptr) = 0;
 	virtual bool writeByte(quint8 bank, quint16 addr, quint8 data) = 0;
 
 protected:

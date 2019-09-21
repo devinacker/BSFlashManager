@@ -271,44 +271,64 @@ void MainWindow::exportAll()
 void MainWindow::transferTest()
 {
 	INLRetroDevice device(this);
+	QFile file("./dumptest.bs");
 
-	if (device.open())
+	if (device.open() && file.open(QFile::WriteOnly))
 	{
 		qDebug() << "USB open succeeded";
 
-		QString test;
+		// first try to detect memory pack
+		// restore default page buffer settings
+		device.writeByte(0xc0, 0x0000, 0x38);
+		device.writeByte(0xc0, 0x0000, 0xd0);
 
 		bool ok = true;
-		for (int i = 0; ok && i < 16; i++)
+
+#if 0
+		// swap in the vendor info page in the flash chip and see what we find
+		device.writeByte(0xc0, 0x0000, 0x72);
+		device.writeByte(0xc0, 0x0000, 0x75);
+		QByteArray flashInfo = device.readBytes(0xc0, 0xff00, 16);
+		device.writeByte(0xc0, 0x0000, 0xff);
+		if (flashInfo.size() < 16
+			|| flashInfo[0] != 'M'
+			|| flashInfo[2] != 'P'
+			|| flashInfo[4] > (char)0x80)
 		{
-			test += device.readByte(0x00, 0xffc0 + i, &ok);
+			qDebug() << "no valid memory pack detected";
+			return;
 		}
 
+		quint8 flashType = (uchar)flashInfo[6] >> 4;
+		quint8 flashSize = 2 << (((uchar)flashInfo[6]) - 8);
+		if (flashSize > 32)
+		{
+			qDebug() << "warning: bogus flash size" << flashSize << "blocks";
+			flashSize = 32;
+		}
+		qDebug() << "type" << flashType << "memory pack detected," << flashSize << "blocks";
+#else
+		quint8 flashSize = 8;
+#endif
+		for (unsigned i = 0; ok && i < flashSize << 1; i++)
+		{
+			file.write(device.readBytes(0xc0 + i, 0x0000, 1 << 16, &ok));
+		}
 		if (ok)
 		{
-			qDebug() << "single byte reads ok" << test;
+			qDebug() << "full file dumped successfully";
 		}
 		else
 		{
-			qDebug() << "single byte reads failed";
-		}
-
-		QByteArray ba = device.readBytes(0x00, 0xff00, 256, &ok);
-		
-		if (ok)
-		{
-			test = QString::fromLatin1(ba.data() + 0xc0, 16);
-			qDebug() << "multi byte read ok" << test;
-		}
-		else
-		{
-			qDebug() << "multi byte read failed";
+			qDebug() << "file dump failed";
 		}
 	}
 	else
 	{
 		qDebug() << "USB open failed";
 	}
+
+	QMessageBox::information(this, tr("Transfer Test"), tr("done"));
 }
 
 // ----------------------------------------------------------------------------

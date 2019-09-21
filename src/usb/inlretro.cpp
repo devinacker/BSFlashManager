@@ -103,7 +103,7 @@ quint8 INLRetroDevice::readByte(quint8 bank, quint16 addr, bool *ok)
 }
 
 // ----------------------------------------------------------------------------
-QByteArray INLRetroDevice::readBytes(quint8 bank, quint16 addr, quint16 size, bool *ok)
+QByteArray INLRetroDevice::readBytes(quint8 bank, quint16 addr, unsigned size, bool *ok)
 {
 	bool bOk = false;
 	QByteArray readData;
