@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "mempackmodel.h"
 
+#include "usb/inlretro.h"
+
 #include <qtemporaryfile.h>
 #include <qfiledialog.h>
 #include <qmessagebox.h>
@@ -54,6 +56,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui.actionExport, SIGNAL(triggered(bool)), this, SLOT(exportSelected()));
 	connect(ui.actionExportAll, SIGNAL(triggered(bool)), this, SLOT(exportAll()));
 	connect(ui.actionExit, SIGNAL(triggered(bool)), this, SLOT(close()));
+
+	connect(ui.actionTransferTest, SIGNAL(triggered(bool)), this, SLOT(transferTest()));
 
 	connect(ui.actionAbout, SIGNAL(triggered(bool)), this, SLOT(about()));
 
@@ -260,6 +264,50 @@ void MainWindow::exportAll()
 				}
 			}
 		}
+	}
+}
+
+// ----------------------------------------------------------------------------
+void MainWindow::transferTest()
+{
+	INLRetroDevice device(this);
+
+	if (device.open())
+	{
+		qDebug() << "USB open succeeded";
+
+		QString test;
+
+		bool ok = true;
+		for (int i = 0; ok && i < 16; i++)
+		{
+			test += device.readByte(0x00, 0xffc0 + i, &ok);
+		}
+
+		if (ok)
+		{
+			qDebug() << "single byte reads ok" << test;
+		}
+		else
+		{
+			qDebug() << "single byte reads failed";
+		}
+
+		QByteArray ba = device.readBytes(0x00, 0xff00, 256, &ok);
+		
+		if (ok)
+		{
+			test = QString::fromLatin1(ba.data() + 0xc0, 16);
+			qDebug() << "multi byte read ok" << test;
+		}
+		else
+		{
+			qDebug() << "multi byte read failed";
+		}
+	}
+	else
+	{
+		qDebug() << "USB open failed";
 	}
 }
 

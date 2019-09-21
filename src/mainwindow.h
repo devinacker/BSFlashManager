@@ -28,6 +28,8 @@ private slots:
 	void exportSelected();
 	void exportAll();
 
+	void transferTest();
+
 	void updateSelected();
 	void applyChanges();
 

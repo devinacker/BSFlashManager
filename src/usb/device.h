@@ -8,7 +8,7 @@ class USBDevice : public QObject
 	Q_OBJECT
 
 public:
-	USBDevice(QObject *parent = nullptr);
+	USBDevice(quint16 vid, quint16 pid, QObject *parent = nullptr);
 	virtual ~USBDevice();
 
 	virtual bool open();
@@ -22,12 +22,13 @@ protected:
 
 	class TimeoutException : public std::exception {};
 
-	bool openHandle(uint type, quint8 endpointIn, quint8 endpointOut);
-	void closeHandle();
-
 	void writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wIndex, quint16 wLength = 1);
 
-	class QUsbDevice *usbDevice;
-	class QUsbTransfer *usbTransfer;
+	struct
+	{
+		quint16 vid, pid;
+	} usbDevice;
+	struct libusb_context *usbContext;
+	struct libusb_device_handle *usbHandle;
 	QByteArray inData;
 };

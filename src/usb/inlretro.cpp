@@ -1,9 +1,6 @@
 #include "inlretro.h"
 
-#include <QtUsb/qusbdevice.h>
-#include <QtUsb/qusbtransfer.h>
-
-static enum INLRequest {
+enum INLRequest {
 	requestIO         = 0x02,
 	requestSNES       = 0x04,
 	requestBuffer     = 0x05,
@@ -44,25 +41,15 @@ static enum INLRequest {
 
 // ----------------------------------------------------------------------------
 INLRetroDevice::INLRetroDevice(QObject *parent)
-	: USBDevice(parent)
+	: USBDevice(0x16c0, 0x05dc, parent)
 {
 	currentBank = 0;
-
-	QUsbDevice::Id deviceId;
-	deviceId.vid = 0x16c0;
-	deviceId.pid = 0x05dc;
-	usbDevice->setId(deviceId);
-
-	//QUsbDevice::Config deviceConfig;
-	// TODO...
-	//usbDevice->setConfig(deviceConfig);
 }
 
 // ----------------------------------------------------------------------------
 bool INLRetroDevice::open()
 {
-	if (USBDevice::open()
-		&& openHandle(QUsbTransfer::controlTransfer, 0x00, 0x00))
+	if (USBDevice::open())
 	{
 		try
 		{
@@ -79,13 +66,10 @@ bool INLRetroDevice::open()
 
 			return true;
 		}
-		catch (TimeoutException&) 
-		{
-			close();
-			return false;
-		}
+		catch (TimeoutException&) {}
 	}
 
+	close();
 	return false;
 }
 
@@ -167,6 +151,8 @@ QByteArray INLRetroDevice::readBytes(quint8 bank, quint16 addr, quint16 size, bo
 		// we're finished; get out of dump mode again
 		writeControlPacket(requestOperation, SET_OPERATION, OPERATION_RESET);
 		writeControlPacket(requestBuffer, RAW_BUFFER_RESET, 0);
+
+		bOk = true;
 	}
 	catch (TimeoutException&) {}
 

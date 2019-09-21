@@ -1,18 +1,20 @@
 #include "device.h"
 
-#include <QtUsb/qusbdevice.h>
-#include <QtUsb/qusbtransfer.h>
+#include "libusb-1.0/libusb.h"
 
-#define TRANSFER_TIMEOUT 100 // in ms
+#define TRANSFER_TIMEOUT 250 // in ms
 
 // ----------------------------------------------------------------------------
-USBDevice::USBDevice(QObject *parent)
+USBDevice::USBDevice(quint16 vid, quint16 pid, QObject *parent)
 	: QObject(parent)
-	, usbDevice(new QUsbDevice(this))
-	, usbTransfer(nullptr)
+	, usbHandle(nullptr)
 {
+	usbDevice.vid = vid;
+	usbDevice.pid = pid;
+
+	libusb_init(&usbContext);
 #ifdef QT_DEBUG
-	usbDevice->setLogLevel(QUsbDevice::logDebug);
+	libusb_set_debug(usbContext, LIBUSB_LOG_LEVEL_DEBUG);
 #endif
 }
 
@@ -20,77 +22,52 @@ USBDevice::USBDevice(QObject *parent)
 USBDevice::~USBDevice()
 {
 	close();
+	libusb_exit(usbContext);
+	usbContext = nullptr;
 }
 
 // ----------------------------------------------------------------------------
 bool USBDevice::open()
 {
-	return usbDevice->open() == QUsbDevice::statusOK;
+	if (!usbHandle)
+	{
+		usbHandle = libusb_open_device_with_vid_pid(usbContext, usbDevice.vid, usbDevice.pid);
+
+		if (!usbHandle) return false;
+
+		// TODO allow specifying these, but the defaults should be ok...
+		libusb_set_configuration(usbHandle, 1);
+		libusb_claim_interface(usbHandle, 0);
+	}
+
+	// was already open
+	return true;
 }
 
 // ----------------------------------------------------------------------------
 void USBDevice::close()
 {
-	if (usbDevice->isConnected())
+	if (usbHandle)
 	{
-		closeHandle();
-		usbDevice->close();
-	}
-}
-
-// ----------------------------------------------------------------------------
-bool USBDevice::openHandle(uint type, quint8 endpointIn, quint8 endpointOut)
-{
-	usbTransfer = new QUsbTransfer(usbDevice, (QUsbTransfer::Type)type, endpointIn, endpointOut);
-
-	// TODO: connect r/w signals here
-
-	if (usbTransfer->open(QIODevice::ReadWrite))
-	{
-		usbTransfer->setPolling(true);
-		return true;
-	}
-
-	delete usbTransfer;
-	usbTransfer = nullptr;
-	return false;
-}
-
-// ----------------------------------------------------------------------------
-void USBDevice::closeHandle()
-{
-	if (usbTransfer)
-	{
-		usbTransfer->close();
-		usbTransfer->disconnect();
-		delete usbTransfer;
-		usbTransfer = nullptr;
+		libusb_release_interface(usbHandle, 0);
+		libusb_close(usbHandle);
+		usbHandle = nullptr;
 	}
 }
 
 // ----------------------------------------------------------------------------
 void USBDevice::writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wIndex, quint16 wLength)
 {
-	if (usbTransfer)
+	if (usbHandle)
 	{
-		char packet[8];
-		usbTransfer->makeControlPacket(packet, QUsbTransfer::requestVendor, (QUsbTransfer::bRequest)bRequest, wValue, wIndex, wLength);
+		inData.resize(wLength);
 
-		inData.clear();
-		if (usbTransfer->write(packet, sizeof packet) == sizeof packet)
+		int rc = libusb_control_transfer(usbHandle, 0x80 | LIBUSB_REQUEST_TYPE_VENDOR, bRequest, wValue, wIndex,
+			(unsigned char*)inData.data(), wLength, TRANSFER_TIMEOUT);
+
+		if (rc < 0)
 		{
-			while (inData.size() < wLength)
-			{
-				// TODO: probably do this in a nonblocking way instead...
-				if (!usbTransfer->waitForReadyRead(TRANSFER_TIMEOUT))
-				{
-					usbTransfer->cancelTransfer();
-					throw TimeoutException();
-				}
-
-				inData += usbTransfer->readAll();
-			}
-
+			throw TimeoutException();
 		}
 	}
 }
