@@ -28,6 +28,12 @@
       <Extensions>moc;h;cpp</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
+    <Filter Include="Header Files\usb">
+      <UniqueIdentifier>{fde952d9-95e2-487a-8d7e-a06168d4303b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\usb">
+      <UniqueIdentifier>{f6a58bf3-8986-4483-b3e7-265d312ed1e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -42,6 +48,15 @@
     <ClCompile Include="src\mempackitem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\usbdump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\usb\inlretro.cpp">
+      <Filter>Source Files\usb</Filter>
+    </ClCompile>
+    <ClCompile Include="src\usb\device.cpp">
+      <Filter>Source Files\usb</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="src\mainwindow.h">
@@ -49,6 +64,12 @@
     </QtMoc>
     <QtMoc Include="src\mempackmodel.h">
       <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="src\usb\device.h">
+      <Filter>Header Files\usb</Filter>
+    </QtMoc>
+    <QtMoc Include="src\usb\inlretro.h">
+      <Filter>Header Files\usb</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
@@ -66,6 +87,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\mempackitem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\usbdump.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
