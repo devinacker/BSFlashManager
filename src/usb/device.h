@@ -8,6 +8,12 @@ class USBDevice : public QObject
 	Q_OBJECT
 
 public:
+
+	enum DeviceType
+	{
+		INLRetro,
+	};
+
 	USBDevice(quint16 vid, quint16 pid, QObject *parent = nullptr);
 	virtual ~USBDevice();
 

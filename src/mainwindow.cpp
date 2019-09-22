@@ -284,7 +284,7 @@ void MainWindow::transferTest()
 {
 	if (!promptSave()) return;
 
-	USBDumpDialog dumpDialog(USBDumpDialog::INLRetro, this);
+	USBDumpDialog dumpDialog(USBDevice::INLRetro, this);
 	openFile(dumpDialog.dump());
 }
 
