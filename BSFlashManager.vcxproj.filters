@@ -71,6 +71,9 @@
     <QtMoc Include="src\usb\inlretro.h">
       <Filter>Header Files\usb</Filter>
     </QtMoc>
+    <QtMoc Include="src\usbdump.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="src\mainwindow.qrc">
@@ -81,15 +84,15 @@
     <QtUic Include="src\mainwindow.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="src\usbdump.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\endian.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\mempackitem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\usbdump.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

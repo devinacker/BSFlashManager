@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "mempackmodel.h"
+#include "usbdump.h"
 
 #include "usb/inlretro.h"
 
@@ -107,16 +108,27 @@ void MainWindow::openFile()
 
 	if (!fileName.isEmpty())
 	{
+		openFile(fileName);
+	}
+}
+
+// ----------------------------------------------------------------------------
+bool MainWindow::openFile(const QString& fileName)
+{
+	if (!fileName.isEmpty())
+	{
 		MemPackItems newItems = loadAllItems(fileName);
 		memPackModel->setItems(newItems);
-
-		ui.statusBar->showMessage(tr("Opened %1.").arg(fileName));
 
 		lastFileName = fileName;
 		updateWindowTitle();
 		updateBlockCount();
 		setWindowModified(false);
+
+		return true;
 	}
+
+	return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -270,65 +282,10 @@ void MainWindow::exportAll()
 // ----------------------------------------------------------------------------
 void MainWindow::transferTest()
 {
-	INLRetroDevice device(this);
-	QFile file("./dumptest.bs");
+	if (!promptSave()) return;
 
-	if (device.open() && file.open(QFile::WriteOnly))
-	{
-		qDebug() << "USB open succeeded";
-
-		// first try to detect memory pack
-		// restore default page buffer settings
-		device.writeByte(0xc0, 0x0000, 0x38);
-		device.writeByte(0xc0, 0x0000, 0xd0);
-
-		bool ok = true;
-
-#if 0
-		// swap in the vendor info page in the flash chip and see what we find
-		device.writeByte(0xc0, 0x0000, 0x72);
-		device.writeByte(0xc0, 0x0000, 0x75);
-		QByteArray flashInfo = device.readBytes(0xc0, 0xff00, 16);
-		device.writeByte(0xc0, 0x0000, 0xff);
-		if (flashInfo.size() < 16
-			|| flashInfo[0] != 'M'
-			|| flashInfo[2] != 'P'
-			|| flashInfo[4] > (char)0x80)
-		{
-			qDebug() << "no valid memory pack detected";
-			return;
-		}
-
-		quint8 flashType = (uchar)flashInfo[6] >> 4;
-		quint8 flashSize = 2 << (((uchar)flashInfo[6]) - 8);
-		if (flashSize > 32)
-		{
-			qDebug() << "warning: bogus flash size" << flashSize << "blocks";
-			flashSize = 32;
-		}
-		qDebug() << "type" << flashType << "memory pack detected," << flashSize << "blocks";
-#else
-		quint8 flashSize = 8;
-#endif
-		for (unsigned i = 0; ok && i < flashSize << 1; i++)
-		{
-			file.write(device.readBytes(0xc0 + i, 0x0000, 1 << 16, &ok));
-		}
-		if (ok)
-		{
-			qDebug() << "full file dumped successfully";
-		}
-		else
-		{
-			qDebug() << "file dump failed";
-		}
-	}
-	else
-	{
-		qDebug() << "USB open failed";
-	}
-
-	QMessageBox::information(this, tr("Transfer Test"), tr("done"));
+	USBDumpDialog dumpDialog(USBDumpDialog::INLRetro, this);
+	openFile(dumpDialog.dump());
 }
 
 // ----------------------------------------------------------------------------
@@ -551,6 +508,8 @@ MemPackItems MainWindow::loadAllItems(const QString& path)
 			QMessageBox::warning(this, tr("Open File"),
 				tr("No valid BS-X files were found in this memory pack."));
 		}
+
+		ui.statusBar->showMessage(tr("Opened %1.").arg(path));
 	}
 
 	return newItems;

@@ -40,6 +40,7 @@ private slots:
 
 private:
 	bool promptSave();
+	bool openFile(const QString&);
 	bool saveFile(const QString&);
 	void updateWindowTitle();
 	void updateBlockCount();

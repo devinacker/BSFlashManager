@@ -1,5 +1,7 @@
 #include "inlretro.h"
 
+#include <QThread>
+
 enum INLRequest {
 	requestIO         = 0x02,
 	requestSNES       = 0x04,
@@ -66,7 +68,10 @@ bool INLRetroDevice::open()
 
 			return true;
 		}
-		catch (TimeoutException&) {}
+		catch (USBException &e) 
+		{
+			emit usbLogMessage(e.what());
+		}
 	}
 
 	close();
@@ -90,13 +95,16 @@ quint8 INLRetroDevice::readByte(quint8 bank, quint16 addr, bool *ok)
 		setBank(bank); 
 		writeControlPacket(requestSNES, value, addr, 3);
 
-		if (inData[0] == '\x00' && inData[1] == '\x01')
+		if (this->inData[0] == '\x00' && this->inData[1] == '\x01')
 		{
-			val = inData[2];
+			val = this->inData[2];
 			bOk = true;
 		}
 	}
-	catch (TimeoutException&) {}
+	catch (USBException &e)
+	{
+		emit usbLogMessage(e.what());
+	}
 
 	if (ok) *ok = bOk;
 	return val;
@@ -138,14 +146,27 @@ QByteArray INLRetroDevice::readBytes(quint8 bank, quint16 addr, unsigned size, b
 		while (readData.size() < size)
 		{
 			// wait for read buffer
-			do
+			unsigned waitCount = 0;
+			while (true)
 			{
 				writeControlPacket(requestBuffer, GET_CUR_BUFF_STATUS, 0, 3);
-			} while (inData.size() < 3 && inData[2] != (char)STATUS_DUMPED);
+				if (this->inData.size() < 3 || this->inData[2] != (char)STATUS_DUMPED)
+				{
+					QThread::msleep(10);
+					if (++waitCount > 32)
+					{
+						throw USBException(tr("Timed out waiting for INL Retro to fill read buffer"));
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
 
 			// get data
 			writeControlPacket(requestBuffer, BUFF_PAYLOAD, 0, 128);
-			readData += inData;
+			readData += this->inData;
 		}
 
 		// we're finished; get out of dump mode again
@@ -154,7 +175,10 @@ QByteArray INLRetroDevice::readBytes(quint8 bank, quint16 addr, unsigned size, b
 
 		bOk = true;
 	}
-	catch (TimeoutException&) {}
+	catch (USBException &e)
+	{
+		emit usbLogMessage(e.what());
+	}
 
 	if (ok) *ok = bOk;
 	return readData;
@@ -175,7 +199,10 @@ bool INLRetroDevice::writeByte(quint8 bank, quint16 addr, quint8 data)
 		writeControlPacket(requestSNES, value, addr);
 		return true;
 	}
-	catch (TimeoutException&) {}
+	catch (USBException &e)
+	{
+		emit usbLogMessage(e.what());
+	}
 
 	return false;
 }

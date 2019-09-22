@@ -18,11 +18,29 @@ public:
 	virtual QByteArray readBytes(quint8 bank, quint16 addr, unsigned size, bool *ok = nullptr) = 0;
 	virtual bool writeByte(quint8 bank, quint16 addr, quint8 data) = 0;
 
+signals:
+	void usbLogMessage(const QString&);
+
 protected:
 
-	class TimeoutException : public std::exception {};
+	class USBException : public std::exception 
+	{
+	public:
+		USBException(const QString& msg) 
+			: std::exception()
+			, msg(msg.toUtf8())
+		{}
+
+		const char *what() const { return msg.constData(); }
+
+	private:
+		QByteArray msg;
+	};
 
 	void writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wIndex, quint16 wLength = 1);
+	QByteArray inData;
+
+private:
 
 	struct
 	{
@@ -30,5 +48,4 @@ protected:
 	} usbDevice;
 	struct libusb_context *usbContext;
 	struct libusb_device_handle *usbHandle;
-	QByteArray inData;
 };

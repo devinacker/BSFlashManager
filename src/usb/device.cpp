@@ -9,12 +9,12 @@ USBDevice::USBDevice(quint16 vid, quint16 pid, QObject *parent)
 	: QObject(parent)
 	, usbHandle(nullptr)
 {
-	usbDevice.vid = vid;
-	usbDevice.pid = pid;
+	this->usbDevice.vid = vid;
+	this->usbDevice.pid = pid;
 
-	libusb_init(&usbContext);
+	libusb_init(&this->usbContext);
 #ifdef QT_DEBUG
-	libusb_set_debug(usbContext, LIBUSB_LOG_LEVEL_DEBUG);
+	libusb_set_debug(this->usbContext, LIBUSB_LOG_LEVEL_DEBUG);
 #endif
 }
 
@@ -22,22 +22,22 @@ USBDevice::USBDevice(quint16 vid, quint16 pid, QObject *parent)
 USBDevice::~USBDevice()
 {
 	close();
-	libusb_exit(usbContext);
-	usbContext = nullptr;
+	libusb_exit(this->usbContext);
 }
 
 // ----------------------------------------------------------------------------
 bool USBDevice::open()
 {
-	if (!usbHandle)
+	if (!this->usbHandle)
 	{
-		usbHandle = libusb_open_device_with_vid_pid(usbContext, usbDevice.vid, usbDevice.pid);
+		this->usbHandle = libusb_open_device_with_vid_pid(this->usbContext, 
+			this->usbDevice.vid, this->usbDevice.pid);
 
-		if (!usbHandle) return false;
+		if (!this->usbHandle) return false;
 
 		// TODO allow specifying these, but the defaults should be ok...
-		libusb_set_configuration(usbHandle, 1);
-		libusb_claim_interface(usbHandle, 0);
+		libusb_set_configuration(this->usbHandle, 1);
+		libusb_claim_interface(this->usbHandle, 0);
 	}
 
 	// was already open
@@ -47,27 +47,27 @@ bool USBDevice::open()
 // ----------------------------------------------------------------------------
 void USBDevice::close()
 {
-	if (usbHandle)
+	if (this->usbHandle)
 	{
-		libusb_release_interface(usbHandle, 0);
-		libusb_close(usbHandle);
-		usbHandle = nullptr;
+		libusb_release_interface(this->usbHandle, 0);
+		libusb_close(this->usbHandle);
+		this->usbHandle = nullptr;
 	}
 }
 
 // ----------------------------------------------------------------------------
 void USBDevice::writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wIndex, quint16 wLength)
 {
-	if (usbHandle)
+	if (this->usbHandle)
 	{
-		inData.resize(wLength);
+		this->inData.resize(wLength);
 
-		int rc = libusb_control_transfer(usbHandle, 0x80 | LIBUSB_REQUEST_TYPE_VENDOR, bRequest, wValue, wIndex,
-			(unsigned char*)inData.data(), wLength, TRANSFER_TIMEOUT);
+		int rc = libusb_control_transfer(this->usbHandle, 0x80 | LIBUSB_REQUEST_TYPE_VENDOR, bRequest, wValue, wIndex,
+			(unsigned char*)this->inData.data(), wLength, TRANSFER_TIMEOUT);
 
 		if (rc < 0)
 		{
-			throw TimeoutException();
+			throw USBException(tr("Control request error: %1").arg(libusb_strerror((libusb_error)rc)));
 		}
 	}
 }
