@@ -43,6 +43,8 @@ protected:
 		QByteArray msg;
 	};
 
+	QByteArray readBulk(quint8 endpoint, int length);
+	int writeBulk(quint8 endpoint, const QByteArray &data);
 	void writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wIndex, quint16 wLength = 1);
 	QByteArray inData;
 
@@ -51,6 +53,8 @@ private:
 	struct
 	{
 		quint16 vid, pid;
+		int interface;
+		quint8 in_ep, out_ep;
 	} usbDevice;
 	struct libusb_context *usbContext;
 	struct libusb_device_handle *usbHandle;

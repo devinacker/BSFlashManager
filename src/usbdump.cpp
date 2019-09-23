@@ -185,7 +185,7 @@ void USBDumpThread::run()
 		if (flashSize > 32)
 		{
 			qDebug() << "warning: bogus flash size" << flashSize << "blocks";
-			flashSize = 32;
+			flashSize = 8;
 		}
 		emit showMessage(tr("Type %1 memory pack detected, %2 blocks.").arg(flashType).arg(flashSize));
 #else

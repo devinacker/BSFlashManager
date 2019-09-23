@@ -56,6 +56,67 @@ void USBDevice::close()
 }
 
 // ----------------------------------------------------------------------------
+QByteArray USBDevice::readBulk(quint8 endpoint, int length)
+{
+	QByteArray data;
+	data.resize(length);
+
+	if (this->usbHandle)
+	{
+		int offset = 0;
+		while (offset < length)
+		{
+			int transferred;
+			int rc = libusb_bulk_transfer(this->usbHandle, LIBUSB_ENDPOINT_IN  | endpoint,
+				(uchar*)data.data() + offset, length - offset, &transferred, TRANSFER_TIMEOUT);
+
+			if (rc < 0 && rc != LIBUSB_ERROR_TIMEOUT)
+			{
+				throw USBException(tr("Bulk read error: %1").arg(libusb_strerror((libusb_error)rc)));
+			}
+
+			offset += transferred;
+		}
+	}
+	else
+	{
+		throw USBException(tr("Tried to bulk read from a closed USB device."));
+	}
+
+	return data;
+}
+
+// ----------------------------------------------------------------------------
+int USBDevice::writeBulk(quint8 endpoint, const QByteArray &data)
+{
+	int offset = 0;
+
+	if (this->usbHandle)
+	{
+		int offset = 0;
+		while (offset < data.size())
+		{
+			int transferred;
+			int rc = libusb_bulk_transfer(this->usbHandle, LIBUSB_ENDPOINT_OUT | endpoint,
+				(uchar*)data.data() + offset, data.size() - offset, &transferred, TRANSFER_TIMEOUT);
+
+			if (rc < 0 && rc != LIBUSB_ERROR_TIMEOUT)
+			{
+				throw USBException(tr("Bulk write error: %1").arg(libusb_strerror((libusb_error)rc)));
+			}
+
+			offset += transferred;
+		}
+	}
+	else
+	{
+		throw USBException(tr("Tried to bulk write to a closed USB device."));
+	}
+
+	return offset;
+}
+
+// ----------------------------------------------------------------------------
 void USBDevice::writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wIndex, quint16 wLength)
 {
 	if (this->usbHandle)
@@ -69,5 +130,9 @@ void USBDevice::writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wInd
 		{
 			throw USBException(tr("Control request error: %1").arg(libusb_strerror((libusb_error)rc)));
 		}
+	}
+	else
+	{
+		throw USBException(tr("Tried to control a closed USB device."));
 	}
 }
