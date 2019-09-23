@@ -118,6 +118,7 @@ void USBDumpDialog::setProgress(int val, int max)
 {
 	ui.progressBar->setRange(0, max);
 	ui.progressBar->setValue(val);
+	ui.progressBar->setTextVisible(true);
 }
 
 // ----------------------------------------------------------------------------
