@@ -175,3 +175,43 @@ void USBDevice::writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wInd
 		throw USBException(tr("Tried to control a closed USB device."));
 	}
 }
+
+// ----------------------------------------------------------------------------
+void USBDevice::getVendorAndProductName(QString &vendor, QString &product)
+{
+	if (this->usbHandle)
+	{
+		libusb_device *device = libusb_get_device(this->usbHandle);
+		libusb_device_descriptor desc;
+		
+		vendor = "";
+		product = "";
+
+		if (libusb_get_device_descriptor(device, &desc) != 0)
+		{
+			throw USBException(tr("Unable to get device descriptor."));
+		}
+
+		uchar buf[256];
+		if (desc.iManufacturer)
+		{
+			if (libusb_get_string_descriptor_ascii(this->usbHandle, desc.iManufacturer, buf, sizeof buf) > 0)
+			{
+				vendor = QString::fromLocal8Bit((const char*)buf);
+				emit usbLogMessage(tr("Found manufacturer name: %1").arg(vendor));
+			}
+		}
+		if (desc.iProduct)
+		{
+			if (libusb_get_string_descriptor_ascii(this->usbHandle, desc.iProduct, buf, sizeof buf) > 0)
+			{
+				product = QString::fromLocal8Bit((const char*)buf);
+				emit usbLogMessage(tr("Found product name: %1").arg(product));
+			}
+		}
+	}
+	else
+	{
+		throw USBException(tr("Tried to get a descriptor for a closed USB device."));
+	}
+}

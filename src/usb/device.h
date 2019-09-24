@@ -48,6 +48,8 @@ protected:
 	void writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wIndex, quint16 wLength = 1);
 	QByteArray inData;
 
+	void getVendorAndProductName(QString &vendor, QString &product);
+
 private:
 
 	struct

@@ -160,13 +160,13 @@ void USBDumpThread::run()
 	{
 		emit showMessage(tr("USB device opened successfully."));
 
+		// TODO... fix USB write commands to the programmer
+#if 0
 		// first try to detect memory pack
 		// restore default page buffer settings
 		this->usbDevice->writeByte(0xc0, 0x0000, 0x38);
 		this->usbDevice->writeByte(0xc0, 0x0000, 0xd0);
 
-		// TODO... fix USB write commands to the programmer
-#if 0
 		// swap in the vendor info page in the flash chip and see what we find
 		this->usbDevice->writeByte(0xc0, 0x0000, 0x72);
 		this->usbDevice->writeByte(0xc0, 0x0000, 0x75);

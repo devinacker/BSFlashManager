@@ -18,6 +18,7 @@ public:
 
 private:
 	void setBank(quint8 bank);
+	void writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wIndex, quint16 wLength = 1);
 
 	quint8 currentBank;
 };

@@ -55,11 +55,20 @@ bool INLRetroDevice::open()
 	{
 		try
 		{
-			// TODO: validate vendor & product names
+			// validate vendor & product names
+			QString vendor, product;
+			getVendorAndProductName(vendor, product);
+			if (vendor != "InfiniteNesLives.com" || product != "INL Retro-Prog")
+			{
+				throw USBException(tr("Matching USB device not found."));
+			}
 
-			// TODO : check return values of these
 			writeControlPacket(requestBootloader, GET_APP_VER, 0, 3);
-			// TODO: check returned data
+			if (inData[1] < '\x01' && inData[2] < '\x03')
+			{
+				emit usbLogMessage(tr("WARNING: Unsupported INL-Retro firmware version. Dumping may not succeed.\n"
+					"Make sure your programmer firmware is up to date. See https://gitlab.com/InfiniteNesLives/INL-retro-progdump for info."));
+			}
 
 			writeControlPacket(requestIO, IO_RESET, 0);
 			writeControlPacket(requestIO, SNES_INIT, 0);
@@ -95,7 +104,7 @@ quint8 INLRetroDevice::readByte(quint8 bank, quint16 addr, bool *ok)
 		setBank(bank); 
 		writeControlPacket(requestSNES, value, addr, 3);
 
-		if (this->inData[0] == '\x00' && this->inData[1] == '\x01')
+		if (this->inData[1] >= '\x01')
 		{
 			val = this->inData[2];
 			bOk = true;
@@ -164,8 +173,8 @@ QByteArray INLRetroDevice::readBytes(quint8 bank, quint16 addr, unsigned size, b
 				}
 			}
 
-			// get data
-			writeControlPacket(requestBuffer, BUFF_PAYLOAD, 0, 128);
+			// get data (no return value, only data)
+			USBDevice::writeControlPacket(requestBuffer, BUFF_PAYLOAD, 0, 128);
 			readData += this->inData;
 		}
 
@@ -214,5 +223,19 @@ void INLRetroDevice::setBank(quint8 bank)
 	{
 		writeControlPacket(requestSNES, SNES_SET_BANK, bank);
 		currentBank = bank;
+	}
+}
+
+// ----------------------------------------------------------------------------
+void INLRetroDevice::writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wIndex, quint16 wLength)
+{
+	USBDevice::writeControlPacket(bRequest, wValue, wIndex, wLength);
+	if (inData[0] != '\0')
+	{
+		throw USBException(tr("Control request error: bRequest=0x%1, wValue=0x%2, wIndex=0x%3, rc=0x%4")
+			.arg(bRequest, 2, 16, QChar('0'))
+			.arg(wValue, 4, 16, QChar('0'))
+			.arg(wIndex, 4, 16, QChar('0'))
+			.arg((quint8)inData[0], 2, 16, QChar('0')));
 	}
 }
