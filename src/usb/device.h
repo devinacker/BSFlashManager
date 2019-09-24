@@ -55,7 +55,7 @@ private:
 	struct
 	{
 		quint16 vid, pid;
-		int interface;
+
 		quint8 in_ep, out_ep;
 	} usbDevice;
 	struct libusb_context *usbContext;
