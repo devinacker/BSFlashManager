@@ -45,6 +45,8 @@ enum INLRequest {
 INLRetroDevice::INLRetroDevice(QObject *parent)
 	: USBDevice(0x16c0, 0x05dc, parent)
 {
+	this->setRequiredVendorAndProductName("InfiniteNesLives.com", "INL Retro-Prog");
+
 	currentBank = 0;
 }
 
@@ -55,14 +57,6 @@ bool INLRetroDevice::open()
 	{
 		try
 		{
-			// validate vendor & product names
-			QString vendor, product;
-			getVendorAndProductName(vendor, product);
-			if (vendor != "InfiniteNesLives.com" || product != "INL Retro-Prog")
-			{
-				throw USBException(tr("Matching USB device not found."));
-			}
-
 			writeControlPacket(requestBootloader, GET_APP_VER, 0, 3);
 			if (inData[1] < '\x01' && inData[2] < '\x03')
 			{

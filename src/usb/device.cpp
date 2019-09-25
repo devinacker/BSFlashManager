@@ -34,9 +34,71 @@ bool USBDevice::open()
 	{
 		this->usbDevice.in_ep = 0;
 		this->usbDevice.out_ep = 0;
-		this->usbHandle = libusb_open_device_with_vid_pid(this->usbContext, 
-			this->usbDevice.vid, this->usbDevice.pid);
 
+		this->usbHandle = nullptr;
+		libusb_device **devices;
+		libusb_device *device;
+
+		int numDevices = libusb_get_device_list(this->usbContext, &devices);
+		for (int i = 0; i < numDevices; i++)
+		{
+			device = devices[i];
+			libusb_device_descriptor desc;
+
+			QString vendor = "";
+			QString product = "";
+
+			if (libusb_get_device_descriptor(device, &desc) != 0)
+			{
+				// unable to get device descriptor
+				continue;
+			}
+
+			if (desc.idVendor != this->usbDevice.vid
+				|| desc.idProduct != this->usbDevice.pid)
+			{
+				// USB VID/PID don't match
+				continue;
+			}
+
+			libusb_device_handle *usbHandle;
+			if (libusb_open(device, &usbHandle) != LIBUSB_SUCCESS)
+			{
+				continue;
+			}
+
+			uchar buf[256];
+			if (desc.iManufacturer)
+			{
+				if (libusb_get_string_descriptor_ascii(usbHandle, desc.iManufacturer, buf, sizeof buf) > 0)
+				{
+					vendor = QString::fromLocal8Bit((const char*)buf);
+				}
+			}
+			if (desc.iProduct)
+			{
+				if (libusb_get_string_descriptor_ascii(usbHandle, desc.iProduct, buf, sizeof buf) > 0)
+				{
+					product = QString::fromLocal8Bit((const char*)buf);
+				}
+			}
+
+			if ((!this->usbDevice.vendor.isEmpty() && this->usbDevice.vendor != vendor)
+				|| (!this->usbDevice.product.isEmpty() && this->usbDevice.product != product))
+			{
+				// vendor or product name didn't match
+				libusb_close(usbHandle);
+				continue;
+			}
+
+			// found it
+			this->usbHandle = usbHandle;
+			break;
+		}
+
+		libusb_free_device_list(devices, 0);
+
+		// no matching device found
 		if (!this->usbHandle) return false;
 
 		// TODO allow specifying these, but the defaults should be ok...
@@ -45,7 +107,6 @@ bool USBDevice::open()
 
 		// find bulk endpoints on the selected config and interface
 		libusb_config_descriptor *config;
-		libusb_device *device = libusb_get_device(this->usbHandle);
 		if (libusb_get_active_config_descriptor(device, &config) == 0)
 		{
 			const libusb_interface *interface = config->interface;
@@ -177,41 +238,8 @@ void USBDevice::writeControlPacket(quint8 bRequest, quint16 wValue, quint16 wInd
 }
 
 // ----------------------------------------------------------------------------
-void USBDevice::getVendorAndProductName(QString &vendor, QString &product)
+void USBDevice::setRequiredVendorAndProductName(const QString &vendor, const QString &product)
 {
-	if (this->usbHandle)
-	{
-		libusb_device *device = libusb_get_device(this->usbHandle);
-		libusb_device_descriptor desc;
-		
-		vendor = "";
-		product = "";
-
-		if (libusb_get_device_descriptor(device, &desc) != 0)
-		{
-			throw USBException(tr("Unable to get device descriptor."));
-		}
-
-		uchar buf[256];
-		if (desc.iManufacturer)
-		{
-			if (libusb_get_string_descriptor_ascii(this->usbHandle, desc.iManufacturer, buf, sizeof buf) > 0)
-			{
-				vendor = QString::fromLocal8Bit((const char*)buf);
-				emit usbLogMessage(tr("Found manufacturer name: %1").arg(vendor));
-			}
-		}
-		if (desc.iProduct)
-		{
-			if (libusb_get_string_descriptor_ascii(this->usbHandle, desc.iProduct, buf, sizeof buf) > 0)
-			{
-				product = QString::fromLocal8Bit((const char*)buf);
-				emit usbLogMessage(tr("Found product name: %1").arg(product));
-			}
-		}
-	}
-	else
-	{
-		throw USBException(tr("Tried to get a descriptor for a closed USB device."));
-	}
+	this->usbDevice.vendor = vendor;
+	this->usbDevice.product = product;
 }
