@@ -1,11 +1,8 @@
 QT += core widgets
 
-QMAKE_CFLAGS += -std=c99
-QMAKE_CXXFLAGS += -std=c++11
-
 TARGET = BSFlashManager
 TEMPLATE = app
-CONFIG += c++11
+CONFIG += c99 c++11
 
 CONFIG(debug, debug|release) {
     DESTDIR = debug
@@ -25,20 +22,29 @@ RCC_DIR = $$OBJECTS_DIR
 # build on OS X with xcode/clang and libc++
 macx:QMAKE_CXXFLAGS += -stdlib=libc++
 
+LIBS += -L$$DESTDIR -llibusb-1.0
+
 RESOURCES += \
     src/mainwindow.qrc
 
 FORMS += \
-    src/mainwindow.ui
+    src/mainwindow.ui \
+    src/usbdump.ui
 
 HEADERS += \
     src/endian.h \
     src/mainwindow.h \
     src/mempackitem.h \
-    src/mempackmodel.h
+    src/mempackmodel.h \
+    src/usb/device.h \
+    src/usb/inlretro.h \
+    src/usbdump.h
 
 SOURCES += \
     src/main.cpp \
     src/mainwindow.cpp \
     src/mempackitem.cpp \
-    src/mempackmodel.cpp
+    src/mempackmodel.cpp \
+    src/usb/device.cpp \
+    src/usb/inlretro.cpp \
+    src/usbdump.cpp

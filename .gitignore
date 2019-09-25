@@ -3,6 +3,7 @@ Debug/
 Release/
 GeneratedFiles/
 .vs/
+.qmake.stash
 Makefile
 Makefile.Release
 Makefile.Debug
