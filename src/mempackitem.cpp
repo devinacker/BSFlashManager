@@ -24,7 +24,7 @@ bool MemPackItem::tryLoadFrom(QFile& file, unsigned offset)
 	if (!titleValid) return false;
 
 	if (header.blocks != 0
-		&& (((header.checksum ^ header.checksumComp == 0xffff) && header.makerFixed == 0x33)
+	    && (((header.checksum ^ header.checksumComp) == 0xffff && header.makerFixed == 0x33)
 			|| ((header.checksum | header.checksumComp) == 0x0000)
 			|| header.blocks == 0xFFFFFFFF))
 	{
