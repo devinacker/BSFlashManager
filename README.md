@@ -1,6 +1,6 @@
 BS-X Flash Manager
 ==================
-version 0.1.0
+version 0.2.0
 
 ![Screenshot](screenshot.png)
 
@@ -12,7 +12,8 @@ What this utility can do:
 * Export files in a memory pack to single-file memory packs (individually or all at once)
 * Automatically try to detect deleted files in the free space of a memory pack
 * Allow recovering and exporting deleted files that were able to be detected
+* Quickly dump memory packs over USB using the [INL Retro programmer](https://www.infiniteneslives.com/inlretro.php)
 
 The utility can also save memory packs that are larger than the standard 8 blocks (megabits); in compatible emulators (such as bsnes-plus and bsnes/higan) the BSX software itself supports up to 32 blocks, with some limitations (a memory pack cannot contain more than one file that's larger than 4 blocks).
 
-Building requires Qt 5 and can be built with either Visual Studio or Qt Creator/qmake. Official builds currently require the Visual Studio 2015 runtime.
+Building requires [Qt 5](https://www.qt.io) and [libusb](https://libusb.info), and can be built with either Visual Studio or Qt Creator/qmake. Official builds currently require the Visual Studio 2017 runtime.

@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 	a.setApplicationDisplayName("BS-X Flash Manager");
 	a.setApplicationName(a.applicationDisplayName());
-	a.setApplicationVersion("0.1.0");
+	a.setApplicationVersion("0.2.0");
 
 	MainWindow w;
 	w.show();
