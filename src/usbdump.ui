@@ -116,6 +116,14 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>editOutputPath</tabstop>
+  <tabstop>buttonBrowse</tabstop>
+  <tabstop>editDumpLog</tabstop>
+  <tabstop>buttonStartDump</tabstop>
+  <tabstop>buttonCancel</tabstop>
+  <tabstop>buttonClose</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
