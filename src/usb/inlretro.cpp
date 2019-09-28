@@ -58,7 +58,7 @@ bool INLRetroDevice::open()
 		try
 		{
 			writeControlPacket(requestBootloader, GET_APP_VER, 0, 3);
-			if (inData[1] < '\x01' && inData[2] < '\x03')
+			if (inData[1] < '\x01' || inData[2] < '\x03')
 			{
 				emit usbLogMessage(tr("WARNING: Unsupported INL-Retro firmware version. Dumping may not succeed.\n"
 					"Make sure your programmer firmware is up to date. See https://gitlab.com/InfiniteNesLives/INL-retro-progdump for info."));
