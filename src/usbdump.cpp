@@ -6,6 +6,9 @@
 #include <qfiledialog.h>
 #include <qdebug.h>
 
+// uncomment to try to detect valid flash memory
+//#define DETECT_MEMORY_PACK
+
 // ----------------------------------------------------------------------------
 USBDumpDialog::USBDumpDialog(USBDevice::DeviceType deviceType, QWidget *parent)
 	: QDialog(parent)
@@ -160,9 +163,13 @@ void USBDumpThread::run()
 	{
 		emit showMessage(tr("USB device opened successfully."));
 
-		// TODO... fix USB write commands to the programmer
-#if 0
+#ifdef DETECT_MEMORY_PACK
 		// first try to detect memory pack
+
+		// memory pack write enable
+		this->usbDevice->writeByte(0x0c, 0x5000, 0x80);
+		this->usbDevice->writeByte(0x0e, 0x5000, 0x00);
+
 		// restore default page buffer settings
 		this->usbDevice->writeByte(0xc0, 0x0000, 0x38);
 		this->usbDevice->writeByte(0xc0, 0x0000, 0xd0);
@@ -172,23 +179,31 @@ void USBDumpThread::run()
 		this->usbDevice->writeByte(0xc0, 0x0000, 0x75);
 		QByteArray flashInfo = this->usbDevice->readBytes(0xc0, 0xff00, 16);
 		this->usbDevice->writeByte(0xc0, 0x0000, 0xff);
+
+		// memory pack write disable
+		this->usbDevice->writeByte(0x0c, 0x5000, 0x00);
+		this->usbDevice->writeByte(0x0e, 0x5000, 0x00);
+
 		if (flashInfo.size() < 16
 			|| flashInfo[0] != 'M'
 			|| flashInfo[2] != 'P'
-			|| flashInfo[4] > (char)0x80)
+			|| flashInfo[4] & 0x80)
 		{
 			emit showMessage(tr("No valid memory pack detected."));
 			ok = false;
 		}
 
 		quint8 flashType = (uchar)flashInfo[6] >> 4;
-		quint8 flashSize = 2 << (((uchar)flashInfo[6]) - 8);
-		if (flashSize > 32)
-		{
-			qDebug() << "warning: bogus flash size" << flashSize << "blocks";
-			flashSize = 8;
+		quint8 flashSize = 2 << (((uchar)flashInfo[6] & 0x0f) - 8);
+
+		if (ok) {
+			if (flashSize > 32)
+			{
+				qDebug() << "warning: bogus flash size" << flashSize << "blocks";
+				flashSize = 8;
+			}
+			emit showMessage(tr("Type %1 memory pack detected, %2 blocks.").arg(flashType).arg(flashSize));
 		}
-		emit showMessage(tr("Type %1 memory pack detected, %2 blocks.").arg(flashType).arg(flashSize));
 #else
 		quint8 flashSize = 8;
 #endif
